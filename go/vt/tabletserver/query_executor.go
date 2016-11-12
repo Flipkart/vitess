@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"math"
+
 	"github.com/youtube/vitess/go/cistring"
 	"github.com/youtube/vitess/go/hack"
 	"github.com/youtube/vitess/go/mysql"
@@ -318,7 +320,12 @@ func (qre *QueryExecutor) execNextval() (*sqltypes.Result, error) {
 	t := qre.plan.TableInfo
 	t.Seq.Lock()
 	defer t.Seq.Unlock()
-	if t.NextVal >= t.LastVal {
+	nextCount := int64(1)
+	bindVars := qre.bindVars
+	if bindVars != nil && bindVars["nextCount"] != nil {
+		nextCount = bindVars["nextCount"].(int64)
+	}
+	if t.NextVal+nextCount-1 >= t.LastVal {
 		_, err := qre.execAsTransaction(func(conn *TxConnection) (*sqltypes.Result, error) {
 			query := fmt.Sprintf("select next_id, cache, increment from `%s` where id = 0 for update", qre.plan.TableName)
 			qr, err := qre.execSQL(conn, query, false)
@@ -339,14 +346,9 @@ func (qre *QueryExecutor) execNextval() (*sqltypes.Result, error) {
 			if cache < 1 {
 				return nil, fmt.Errorf("invalid cache value for sequence %s: %d", qre.plan.TableName, cache)
 			}
-			inc, err := qr.Rows[0][2].ParseInt64()
-			if err != nil {
-				return nil, fmt.Errorf("error loading sequence %s: %v", qre.plan.TableName, err)
-			}
-			if inc < 1 {
-				return nil, fmt.Errorf("invalid increment for sequence %s: %d", qre.plan.TableName, inc)
-			}
-			newLast := nextID + cache*inc
+			//Ignoring Increment value in table and making it as 1 always
+			inc := int64(1)
+			newLast := nextID + int64(math.Ceil(float64(nextCount)/float64(cache)))*cache*inc
 			query = fmt.Sprintf("update `%s` set next_id = %d where id = 0", qre.plan.TableName, newLast)
 			conn.RecordQuery(query)
 			_, err = qre.execSQL(conn, query, false)
@@ -363,7 +365,7 @@ func (qre *QueryExecutor) execNextval() (*sqltypes.Result, error) {
 		}
 	}
 	ret := t.NextVal
-	t.NextVal += t.Increment
+	t.NextVal += nextCount * t.Increment
 	return &sqltypes.Result{
 		Fields: sequenceFields,
 		Rows: [][]sqltypes.Value{{

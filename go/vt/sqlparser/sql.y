@@ -205,6 +205,10 @@ select_statement:
   {
     $$ = &Union{Type: $2, Left: $1, Right: $3}
   }
+| SELECT comment_opt NEXT value_expression VALUES for_from table_name
+  {
+    $$ = &Select{Comments: Comments($2), SelectExprs: SelectExprs{Nextval{NextCount: $4}}, From: TableExprs{&AliasedTableExpr{Expr: $7}}}
+  }
 
 insert_statement:
   INSERT comment_opt ignore_opt INTO table_name column_list_opt row_list on_dup_opt

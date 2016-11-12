@@ -531,11 +531,17 @@ func (node *NonStarExpr) WalkSubtree(visit Visit) error {
 }
 
 // Nextval defines the NEXT VALUE expression.
-type Nextval struct{}
+type Nextval struct {
+	NextCount ValExpr
+}
 
 // Format formats the node.
 func (node Nextval) Format(buf *TrackedBuffer) {
-	buf.Myprintf("next value")
+	if node.NextCount == nil {
+		buf.Myprintf("next value")
+		return
+	}
+	buf.Myprintf("next %v values", node.NextCount)
 }
 
 // WalkSubtree walks the nodes of the subtree
