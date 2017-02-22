@@ -5,16 +5,16 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.youtube.vitess</groupId>
     <artifactId>vitess-parent</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>${client.version}</version>
     <packaging>pom</packaging>
     <url>https://github.com/youtube/vitess/</url>
     <description>Umbrella project for all Java activities for Vitess</description>
     <inceptionYear>2014</inceptionYear>
     <modules>
         <module>client</module>
-        <module>example</module>
+        <!--<module>example</module>-->
         <module>grpc-client</module>
-        <module>hadoop</module>
+        <!--<module>hadoop</module>-->
         <module>jdbc</module>
     </modules>
 
@@ -68,6 +68,7 @@
       <junit.version>4.12</junit.version>
       <log4j.version>1.2.17</log4j.version>
       <protobuf.java.version>3.0.0</protobuf.java.version>
+      <client.version>1.6.0</client.version>
     </properties>
 
     <!-- define dependency versions -->
@@ -108,4 +109,12 @@
         </plugin>
       </plugins>
     </build>
+
+    <distributionManagement>
+        <repository>
+            <id>ops-build-0008</id>
+            <name>ops-build-0008-releases</name>
+            <url>http://artifactory.nm.flipkart.com:8081/artifactory/libs-releases-local</url>
+        </repository>
+    </distributionManagement>
 </project>
