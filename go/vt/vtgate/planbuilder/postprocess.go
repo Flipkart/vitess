@@ -119,9 +119,9 @@ func pushOrderBy(orderBy sqlparser.OrderBy, bldr builder) error {
 		if rb.Order() < routeNumber {
 			return errors.New("unsupported: complex join and out of sequence order by")
 		}
-		if !rb.IsSingle() {
-			return errors.New("unsupported: scatter and order by")
-		}
+		//if !rb.IsSingle() {
+		//	return errors.New("unsupported: scatter and order by")
+		//}
 		routeNumber = rb.Order()
 		if err := rb.AddOrder(pushOrder); err != nil {
 			return err
@@ -138,9 +138,9 @@ func pushLimit(limit *sqlparser.Limit, bldr builder) error {
 	if !ok {
 		return errors.New("unsupported: limits with complex joins")
 	}
-	if !rb.IsSingle() {
-		return errors.New("unsupported: limits with scatter")
-	}
+	//if !rb.IsSingle() {
+	//	return errors.New("unsupported: limits with scatter")
+	//}
 	rb.SetLimit(limit)
 	return nil
 }
